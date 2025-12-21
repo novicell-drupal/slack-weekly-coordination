@@ -1,0 +1,117 @@
+name: Weekly Slack Coordination
+
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Monday 09:00 Copenhagen
+    - cron: "0 7 * * 2" # Tuesday 09:00 Copenhagen
+  workflow_dispatch:
+
+jobs:
+  coordination:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine posting day
+        id: logic
+        env:
+          TZ: Europe/Copenhagen
+        run: |
+          set -e
+
+          TODAY=$(date +"%Y-%m-%d")
+          WEEKDAY=$(date +"%u") # 1=Mon, 2=Tue
+          YEAR=$(date +"%Y")
+
+          # --- Easter calculation ---
+          a=$((YEAR % 19))
+          b=$((YEAR / 100))
+          c=$((YEAR % 100))
+          d=$((b / 4))
+          e=$((b % 4))
+          f=$(((b + 8) / 25))
+          g=$(((b - f + 1) / 3))
+          h=$(((19 * a + b - d - g + 15) % 30))
+          i=$((c / 4))
+          k=$((c % 4))
+          l=$(((32 + 2 * e + 2 * i - h - k) % 7))
+          m=$(((a + 11 * h + 22 * l) / 451))
+          easter_month=$(((h + l - 7 * m + 114) / 31))
+          easter_day=$((((h + l - 7 * m + 114) % 31) + 1))
+          EASTER=$(date -d "$YEAR-$easter_month-$easter_day" +"%Y-%m-%d")
+
+          MAUNDY_THURSDAY=$(date -d "$EASTER -3 days" +"%Y-%m-%d")
+          GOOD_FRIDAY=$(date -d "$EASTER -2 days" +"%Y-%m-%d")
+          EASTER_MONDAY=$(date -d "$EASTER +1 day" +"%Y-%m-%d")
+          ASCENSION_DAY=$(date -d "$EASTER +39 days" +"%Y-%m-%d")
+          WHIT_MONDAY=$(date -d "$EASTER +50 days" +"%Y-%m-%d")
+
+          HOLIDAYS=(
+            "$YEAR-01-01"
+            "$YEAR-06-05"
+            "$YEAR-12-25"
+            "$YEAR-12-26"
+            "$MAUNDY_THURSDAY"
+            "$GOOD_FRIDAY"
+            "$EASTER_MONDAY"
+            "$ASCENSION_DAY"
+            "$WHIT_MONDAY"
+          )
+
+          IS_HOLIDAY=false
+          for DAY in "${HOLIDAYS[@]}"; do
+            [[ "$TODAY" == "$DAY" ]] && IS_HOLIDAY=true
+          done
+
+          echo "holiday=$IS_HOLIDAY" >> "$GITHUB_OUTPUT"
+          echo "weekday=$WEEKDAY" >> "$GITHUB_OUTPUT"
+
+      - name: Check marker
+        if: steps.logic.outputs.weekday == '2'
+        uses: actions/download-artifact@v4
+        with:
+          name: monday-holiday
+        continue-on-error: true
+
+      - name: Decide to post
+        id: decision
+        run: |
+          POST=false
+
+          if [[ "${{ steps.logic.outputs.weekday }}" == "1" && "${{ steps.logic.outputs.holiday }}" == "false" ]]; then
+            POST=true
+          fi
+
+          if [[ "${{ steps.logic.outputs.weekday }}" == "2" && -f monday-holiday ]]; then
+            POST=true
+          fi
+
+          echo "post=$POST" >> "$GITHUB_OUTPUT"
+
+      - name: Store marker (Monday holiday)
+        if: steps.logic.outputs.weekday == '1' && steps.logic.outputs.holiday == 'true'
+        run: |
+          echo "holiday" > monday-holiday
+
+      - name: Upload marker
+        if: steps.logic.outputs.weekday == '1' && steps.logic.outputs.holiday == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: monday-holiday
+          path: monday-holiday
+          retention-days: 2
+
+      - name: Post Slack message
+        if: steps.decision.outputs.post == 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          TZ: Europe/Copenhagen
+        run: |
+          WEEK=$(date +"%V")
+
+          curl -s -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"#team-drupal\",
+              \"text\": \"@here week ${WEEK} coordination\n\n:monday:\n:tuesday:\n:wednesday:\n:thursday:\n:friday:\"
+            }"
