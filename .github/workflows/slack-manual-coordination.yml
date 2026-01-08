@@ -1,0 +1,41 @@
+name: Manual Slack Coordination
+
+on:
+  workflow_dispatch:
+    inputs:
+      custom_message:
+        description: "Optional custom Slack message"
+        required: false
+        default: ""
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post Slack message
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          TZ: Europe/Copenhagen
+        run: |
+          WEEK=$(date +"%V")
+
+          if [[ -n "${{ inputs.custom_message }}" ]]; then
+            MESSAGE="${{ inputs.custom_message }}"
+          else
+            MESSAGE="@here week ${WEEK} coordination
+
+:monday:
+:tuesday:
+:wednesday:
+:thursday:
+  :friday:"
+  fi
+  
+  curl -s -X POST https://slack.com/api/chat.postMessage \
+-H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+-H "Content-Type: application/json" \
+  -d "{
+\"channel\": \"#your-channel-name\",
+\"text\": \"${MESSAGE}\"
+}"
