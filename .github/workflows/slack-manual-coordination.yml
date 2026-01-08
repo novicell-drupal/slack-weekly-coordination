@@ -24,18 +24,17 @@ jobs:
             MESSAGE="${{ inputs.custom_message }}"
           else
             MESSAGE="@here week ${WEEK} coordination
-
-:monday:
-:tuesday:
-:wednesday:
-:thursday:
-  :friday:"
-  fi
-  
-  curl -s -X POST https://slack.com/api/chat.postMessage \
--H "Authorization: Bearer $SLACK_BOT_TOKEN" \
--H "Content-Type: application/json" \
-  -d "{
-\"channel\": \"#your-channel-name\",
-\"text\": \"${MESSAGE}\"
-}"
+            :monday:
+            :tuesday:
+            :wednesday:
+            :thursday:
+            :friday:"
+          fi
+            
+            curl -s -X POST https://slack.com/api/chat.postMessage \
+              -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+              -H "Content-Type: application/json" \
+                -d "{
+              \"channel\": \"#team-drupal\",
+              \"text\": \"${MESSAGE}\"
+              }"
