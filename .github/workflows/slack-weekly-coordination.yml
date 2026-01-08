@@ -107,11 +107,12 @@ jobs:
           TZ: Europe/Copenhagen
         run: |
           WEEK=$(date +"%V")
+          MESSAGE="@here week ${WEEK} coordination :monday: :tuesday: :wednesday2: :thursday: :friday2:"
 
           curl -s -X POST https://slack.com/api/chat.postMessage \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
               \"channel\": \"#team-drupal\",
-              \"text\": \"@here week ${WEEK} coordination\n\n:monday:\n:tuesday:\n:wednesday:\n:thursday:\n:friday:\"
+              \"text\": \"${MESSAGE}\"
             }"
