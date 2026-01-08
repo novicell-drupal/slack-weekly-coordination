@@ -21,7 +21,7 @@ jobs:
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
-              \"channel\": \"#team-drupal\",
+              \"channel\": \"C0629MAM5NK\",
               \"text\": \"$MESSAGE\"
             }")
 
@@ -34,7 +34,7 @@ jobs:
               -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{
-                \"channel\": \"#team-drupal\",
+                \"channel\": \"C0629MAM5NK\",
                 \"name\": \"$EMOJI\",
                 \"timestamp\": \"$TS\"
               }"
