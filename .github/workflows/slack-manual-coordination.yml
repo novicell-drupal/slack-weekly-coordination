@@ -20,21 +20,10 @@ jobs:
         run: |
           WEEK=$(date +"%V")
 
-          if [[ -n "${{ inputs.custom_message }}" ]]; then
-            MESSAGE="${{ inputs.custom_message }}"
-          else
-            MESSAGE="@here week ${WEEK} coordination
-            :monday:
-            :tuesday:
-            :wednesday:
-            :thursday:
-            :friday:"
-          fi
-            
-            curl -s -X POST https://slack.com/api/chat.postMessage \
-              -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-              -H "Content-Type: application/json" \
-                -d "{
+          curl -s -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
               \"channel\": \"#team-drupal\",
-              \"text\": \"${MESSAGE}\"
-              }"
+              \"text\": \"@here week ${WEEK} coordination\n\n:monday:\n:tuesday:\n:wednesday:\n:thursday:\n:friday:\"
+            }"
