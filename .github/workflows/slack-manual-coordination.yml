@@ -14,6 +14,7 @@ jobs:
           TZ: Europe/Copenhagen
         run: |
           WEEK=$(date +"%V")
+          CHANNEL="C0629MAM5NK"
           MESSAGE="<!here> week ${WEEK} coordination"
 
           # Step 1: Post the message
@@ -21,7 +22,7 @@ jobs:
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
-              \"channel\": \"C0629MAM5NK\",
+              \"channel\": \"$CHANNEL\",
               \"text\": \"$MESSAGE\"
             }")
 

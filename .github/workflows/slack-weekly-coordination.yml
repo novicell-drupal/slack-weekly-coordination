@@ -107,12 +107,29 @@ jobs:
           TZ: Europe/Copenhagen
         run: |
           WEEK=$(date +"%V")
-          MESSAGE="@here week ${WEEK} coordination :monday: :tuesday: :wednesday2: :thursday: :friday2:"
+          CHANNEL="C0629MAM5NK"
+          MESSAGE="<!here> week ${WEEK} coordination"
 
-          curl -s -X POST https://slack.com/api/chat.postMessage \
+          # Step 1: Post the message
+          RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{
-              \"channel\": \"#team-drupal\",
-              \"text\": \"${MESSAGE}\"
-            }"
+              \"channel\": \"$CHANNEL\",
+              \"text\": \"$MESSAGE\"
+            }")
+
+          # Extract the timestamp (ts) from the response
+          TS=$(echo "$RESPONSE" | jq -r '.ts')
+
+          # Step 2: Add reactions (clickable emojis)
+          for EMOJI in monday tuesday wednesday2 thursday friday2; do
+            curl -s -X POST https://slack.com/api/reactions.add \
+              -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"channel\": \"C0629MAM5NK\",
+                \"name\": \"$EMOJI\",
+                \"timestamp\": \"$TS\"
+              }"
+          done
