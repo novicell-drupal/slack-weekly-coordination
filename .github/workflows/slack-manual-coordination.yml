@@ -2,11 +2,6 @@ name: Manual Slack Coordination
 
 on:
   workflow_dispatch:
-    inputs:
-      custom_message:
-        description: "Optional custom Slack message"
-        required: false
-        default: ""
 
 jobs:
   post:
