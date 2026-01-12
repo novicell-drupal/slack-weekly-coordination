@@ -132,4 +132,5 @@ jobs:
                 \"name\": \"$EMOJI\",
                 \"timestamp\": \"$TS\"
               }"
+            sleep 1
           done
